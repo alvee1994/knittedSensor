@@ -14,6 +14,9 @@ import matplotlib.animation as animation
 import time
 from collections import deque
 
+# multiprocessing
+from multiprocessing import Process, Pipe
+
 
 
 

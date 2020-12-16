@@ -12,7 +12,7 @@ int pins = 4;
 float sensors[4] = {0, 0, 0, 0};
 int numReadings = 8;
 int resolution = 12;
-int inputPin[4] = {A0, A1, A2, A3};
+int inputPin[4] = {A1, A2, A3, A4};
 int readings[16];
 char data[10];
 
