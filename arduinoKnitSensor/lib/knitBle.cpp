@@ -10,13 +10,13 @@ BLECharacteristic sensorReadings("19B10012-E8F2-537E-4F6C-D104768A1214",  BLERea
 
 int pins = 4;
 float sensors[4] = {0, 0, 0, 0};
-int numReadings = 8;
+int numReadings = 3;
+int readings[3];
 int resolution = 12;
 int inputPin[4] = {A1, A2, A3, A4};
-int readings[16];
 char data[10];
 
-// unsigned long time_us;
+unsigned long time_us;
 // unsigned long old_time;
 // uint16_t time_since_;
 // int count;
@@ -24,6 +24,7 @@ char data[10];
 
 knitBle::knitBle(void){
   analogReadResolution(resolution);
+  analogReference(AR_VDD);
 
   if (!BLE.begin()) {
   Serial.println("starting BLE failed!");
@@ -57,7 +58,6 @@ void knitBle::blePeripheralDisconnectHandler(BLEDevice central) {
 void knitBle::readSensors(){
   BLE.poll();
   float total[4] = {0, 0, 0, 0};
-
   for (int p = 0; p < pins; p++){
     for (int readIndex = 0; readIndex < numReadings; readIndex++){
         readings[readIndex] = analogRead(inputPin[p]);
@@ -65,39 +65,18 @@ void knitBle::readSensors(){
     }
     sensors[p] = total[p] / numReadings;
     sensors[p] = 1000 * 3.3 * (sensors[p] / pow(2, resolution));
-    delay(1);
   }
-
   broadcastReadings(sensors);
 }
 
 void knitBle::broadcastReadings(float *sensorData){
-  // Serial.print("millivolts: ");
 
   int m = 0;
   for (int i = 0; i < pins; i++){
     int n = i * 2;
     data[n] = uint16_t(sensorData[i]) >> 8;
     data[n+1] = uint16_t(sensorData[i]) & 0xff;
-    // Serial.print((byte)data[n]);
-    // Serial.print(" ");
-    // Serial.print((byte)data[n+1]);
   }
-  // Serial.println("");
-
-  // time_us = micros();
-  // uint16_t time_since = time_us - old_time;
-  // time_since_ += time_since;
-  // old_time = time_us;
-  // count++;
-  //
-  // data[8] = uint16_t(count*1000) >> 8;
-  // data[9] = uint16_t(count*1000) & 0xff;
-
-  // if (time_since_ > 1000000){
-  //   time_since_ = 0;
-  //   count = 0;
-  // }
 
   sensorReadings.writeValue(data, sizeof(data));
 

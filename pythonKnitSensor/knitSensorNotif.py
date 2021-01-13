@@ -6,19 +6,30 @@ from bluepy import btle
 import binascii
 import os.path
 from bluepy.btle import Scanner, DefaultDelegate
-import os
+import os, csv, sys
+import logging
 
 # for live plotting
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import time
+import time, datetime
 from collections import deque
 
 # multiprocessing
 from multiprocessing import Process, Pipe
 
+""" this section is to setup the logger """
+formatter = logging.Formatter(fmt='%(asctime)s.%(msecs)03d %(message)s',datefmt='%Y-%m-%d,%H:%M:%S')
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG) # process everything, even if everything isn't printed
+logfilename = 'imudata_' + datetime.datetime.now().strftime("%f") + '.log'
 
+fh = logging.FileHandler(logfilename)
+fh.setLevel(logging.DEBUG) # or any level you want
+fh.setFormatter(formatter)
 
+logger.addHandler(fh)
+""" end of the logging setup """
 
 class BLEDelegate(DefaultDelegate):
     def __init__(self, params):
@@ -29,8 +40,9 @@ class BLEDelegate(DefaultDelegate):
         decimalValue = (binascii.b2a_hex(data))
         splitted = [decimalValue[i:i+4] for i in range(0, len(decimalValue),4)]
         self.val = np.array(list(map(lambda x: int((x),16)/1000, splitted)))
-        idx = np.nonzero(self.val)
-        self.val = self.val[idx]
+        # self.val = np.insert(self.val, 0, )
+        #idx = np.nonzero(self.val)
+        #self.val = self.val[idx]
         BLEDevice.sensors = self.val
 
 class BLEDevice():
@@ -133,15 +145,38 @@ class BLEDevice():
                     return p.addr, self.sensors
                     continue
 
-    def readBleSensors(self):
+    def readBleSensors(self, record = False):
         try:
             while(1):
                 addr, data = self.readSensors();
-                print(time.process_time(), data)
+                logger.debug(data)
+                print(data)
+
+                # if record:
+                #
+                #     with open('capturedData.csv', 'a') as outfile:
+                #         addr, data = self.readSensors();
+                #         data = np.insert(data, 0, time.process_time())
+                #         print(data)
+                #         writer = csv.writer(outfile)
+                #         writer.writerow(data)
+                # else:
+                #     addr, data = self.readSensors();
+                #     print(time.process_time(), data)
+
+                ## convert for sam
+                # data = self.toFloat(data)
+
         except KeyboardInterrupt:
             self.disconnect()
             quit()
 
+
+
+    def toFloat(self, alldata):
+        a = [np.interp(af*1000, [0, 65356], [-2, 2]) for af in alldata[:3]]
+        g = [np.interp(gf*1000, [0, 4096], [-500, 500]) for gf in alldata[3:]]
+        return np.append(a, g)
 
     def disconnect(self):
         print("\ndisconnecting all peripherals\n")
@@ -156,7 +191,10 @@ if __name__ == "__main__":
     KneeBrace = BLEDevice()
     if KneeBrace.scanAndConnect():
         try:
-            KneeBrace.readBleSensors()
+            if (len(sys.argv) > 1 and sys.argv[1] == 'record'):
+                KneeBrace.readBleSensors(record = True)
+            else:
+                KneeBrace.readBleSensors()
         except KeyboardInterrupt:
             KneeBrace.disconnect()
             quit()
