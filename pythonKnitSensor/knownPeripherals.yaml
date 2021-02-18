@@ -1,5 +1,6 @@
 KneeBrace:
         28:a7:3c:7a:c6:90: kneeBraceOne # name this whatever device you are using
+        a5:60:61:d0:27:5c: kneeBraceTwo # the module with snap buttons
 
 Service: 19b10010-e8f2-537e-4f6c-d104768a1214 # the service containing the characteristic you want to read
-Characteristic: 19B10012-E8F2-537E-4F6C-D104768A1214 # the characteristic that notifies. remember to turn on notifications for this characteristic
+Characteristic: 19b10012-e8f2-537e-4f6c-d104768a1214 # the characteristic that notifies. remember to turn on notifications for this characteristic

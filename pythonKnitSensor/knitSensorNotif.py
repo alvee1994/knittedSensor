@@ -22,7 +22,7 @@ from multiprocessing import Process, Pipe
 formatter = logging.Formatter(fmt='%(asctime)s.%(msecs)03d %(message)s',datefmt='%Y-%m-%d,%H:%M:%S')
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG) # process everything, even if everything isn't printed
-logfilename = 'imudata_' + datetime.datetime.now().strftime("%f") + '.log'
+logfilename = 'kneebrace_' + datetime.datetime.now().strftime("%f") + '.log'
 
 fh = logging.FileHandler(logfilename)
 fh.setLevel(logging.DEBUG) # or any level you want
